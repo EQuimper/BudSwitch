@@ -1,14 +1,24 @@
 <p align="center">
-  <img src="Assets/icon.png" width="160" height="160" alt="BudSwitch icon">
+  <img src="Assets/icon.png" width="128" height="128" alt="BudSwitch icon">
 </p>
 
 <h1 align="center">BudSwitch</h1>
 
-<p align="center">A menu bar app that moves your headphones between your Mac and your iPhone.</p>
+<p align="center">A menu bar app that moves your AirPods or Beats between your Mac and your iPhone.</p>
+
+<p align="center">
+  <img src="Assets/hand-off.svg" width="100%" alt="Your Mac plays through your earbuds, then pauses and locks, and BudSwitch lets go of them. You press play on your iPhone and it takes them. ⌃⌥⌘B brings them back to the Mac.">
+</p>
 
 ## Why
 
-I was tired of my headphones not going where I wanted. Apple's automatic switching works in some cases, but sometimes I still had to go into the Bluetooth settings and force the connection. BudSwitch does that from the menu bar, or with a shortcut.
+Your headphones are paired with your Mac and your iPhone, but they play from one at a time.
+
+You sit down at your Mac and start a video, and the sound comes out of the speakers: your headphones are still on your iPhone. You lock the Mac, head out and press play on a podcast, and it plays out loud from your iPhone: the Mac still has them.
+
+Apple's automatic switching guesses which device you mean. When it guesses wrong, you end up in Bluetooth settings, clicking Connect and waiting.
+
+**BudSwitch doesn't guess. It gives you a switch.** One click, or <kbd>⌃</kbd> <kbd>⌥</kbd> <kbd>⌘</kbd> <kbd>B</kbd> from any app, puts your headphones on your Mac. Another lets go of them, and your iPhone takes them when you press play. Lock your Mac when you leave, and BudSwitch lets go of them for you.
 
 ## Install
 
@@ -24,30 +34,28 @@ BudSwitch checks GitHub for a new version once a day and sends a notification wh
 
 ## Use
 
-Your headphones need to be paired with both the Mac and the iPhone. From BudSwitch's menu bar icon:
+<p align="center">
+  <img src="Assets/menu.png" width="300" alt="BudSwitch's menu under its menu bar icon: Mac, iPhone, the headphones, Launch at Login and Quit">
+</p>
 
-- **Mac** connects your headphones to this Mac.
-- **iPhone** lets go of them: press play on your iPhone and they move over.
-- **⌃⌥⌘B** toggles between the two, from any app.
-- **Locking the Mac** lets go of them too, unless the Mac is playing through them. It then checks again every 15 seconds until playback stops, or until you unlock. **Sleep** always lets go.
-- **The headphones submenu**, under their name, picks which headphones the menu, the shortcut and the lock rule control. It follows whichever headphones last connected to the Mac.
+Your headphones need to be paired with both your Mac and your iPhone.
 
-The menu bar icon dims while the headphones aren't on the Mac. BudSwitch opens at login; **Launch at Login** in its menu turns that off.
+| When you… | BudSwitch… |
+| --- | --- |
+| click **Mac** | connects your headphones to this Mac |
+| click **iPhone** | lets go of them, so your iPhone takes them when you press play |
+| press <kbd>⌃</kbd> <kbd>⌥</kbd> <kbd>⌘</kbd> <kbd>B</kbd> | toggles between the two, from any app |
+| lock your Mac | lets go of them once nothing plays through them |
+| put your Mac to sleep | always lets go of them |
 
-## How it works
+The submenu under your headphones' name picks which ones the menu, the shortcut and the lock rule control. It follows whichever headphones last connected to the Mac.
 
-- **Mac** opens a Bluetooth connection to the headphones with IOBluetooth's `openConnection`, and macOS moves the sound to them by itself.
-- **iPhone** closes that connection with `closeConnection`. The headphones stay paired with both devices, so the iPhone can take them when you press play.
-- The lock rule asks Core Audio whether any app is running audio on the headphones' output (`kAudioDevicePropertyDeviceIsRunningSomewhere`).
-- The shortcut is a Carbon hot key (`RegisterEventHotKey`), and the login item goes through `SMAppService`.
-- The update check compares the app's version with the latest release's tag from GitHub's API (`releases/latest`), and posts its notification with `UNUserNotificationCenter`.
-
-About 430 lines of Swift and AppKit, with no dependencies.
+The menu bar icon dims while your headphones aren't on the Mac. BudSwitch opens at login; **Launch at Login** in its menu turns that off.
 
 ## Limitations
 
-- Tested with Powerbeats Pro and an iPhone. BudSwitch lists every paired Bluetooth audio device and connects or disconnects any of them the same way, but whether pressing play on the iPhone pulls other headphones over depends on the headphones.
-- Core Audio says whether an app has the output running, not whether it makes a sound. An app that keeps it running while paused counts as playing, so locking waits for it; sleep still lets go.
+- Tested with AirPods, Powerbeats Pro and an iPhone. BudSwitch lists every paired Bluetooth audio device and connects or disconnects any of them the same way, but whether pressing play on the iPhone pulls other headphones over depends on the headphones.
+- BudSwitch can tell whether an app has your headphones' output running, not whether it makes a sound. An app that keeps it running while paused counts as playing, so locking waits for it; sleep still lets go.
 
 ## License
 
