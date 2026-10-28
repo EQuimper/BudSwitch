@@ -49,18 +49,6 @@ About 430 lines of Swift and AppKit, with no dependencies.
 - Tested with Powerbeats Pro and an iPhone. BudSwitch lists every paired Bluetooth audio device and connects or disconnects any of them the same way, but whether pressing play on the iPhone pulls other headphones over depends on the headphones.
 - Core Audio says whether an app has the output running, not whether it makes a sound. An app that keeps it running while paused counts as playing, so locking waits for it; sleep still lets go.
 
-## Build from source
-
-```sh
-git clone https://github.com/EQuimper/BudSwitch.git
-cd BudSwitch
-./build.sh
-```
-
-`build.sh` builds `build/BudSwitch.app`, installs it in `~/Applications` and launches it. It needs Xcode 16 or later. It signs the app with your Developer ID or Apple Development certificate (`SIGN_IDENTITY` picks another one), so the Bluetooth permission survives rebuilds. Without a certificate, it signs ad hoc and macOS asks again after every build.
-
-The icon's source is `Assets/AppIcon.svg`. `./icon.sh` renders it into `Resources/AppIcon.icns` and `Assets/icon.png`, using Google Chrome. The menu bar icon is drawn in code, in `Sources/BudSwitch/MenuBarIcon.swift`.
-
 ## License
 
 [MIT](LICENSE). BudSwitch is not affiliated with Apple.
