@@ -6,6 +6,10 @@
 
 <p align="center">A menu bar app that moves your headphones between your Mac and your iPhone.</p>
 
+## Why
+
+I was tired of my headphones not going where I wanted. Apple's automatic switching works in some cases, but sometimes I still had to go into the Bluetooth settings and force the connection. BudSwitch does that from the menu bar, or with a shortcut.
+
 ## Install
 
 ```sh
