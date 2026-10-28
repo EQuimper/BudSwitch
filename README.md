@@ -35,7 +35,7 @@ The menu bar icon dims while the headphones aren't on the Mac. BudSwitch opens a
 - The lock rule asks Core Audio whether any app is running audio on the headphones' output (`kAudioDevicePropertyDeviceIsRunningSomewhere`).
 - The shortcut is a Carbon hot key (`RegisterEventHotKey`), and the login item goes through `SMAppService`.
 
-About 350 lines of Swift and AppKit, with no dependencies.
+About 370 lines of Swift and AppKit, with no dependencies.
 
 ## Limitations
 
@@ -52,7 +52,7 @@ cd BudSwitch
 
 `build.sh` builds `build/BudSwitch.app`, installs it in `~/Applications` and launches it. It needs Xcode 16 or later. It signs the app with your Developer ID or Apple Development certificate (`SIGN_IDENTITY` picks another one), so the Bluetooth permission survives rebuilds. Without a certificate, it signs ad hoc and macOS asks again after every build.
 
-The icon's source is `Assets/AppIcon.svg`. `./icon.sh` renders it into `Resources/AppIcon.icns` and `Assets/icon.png`, using Google Chrome.
+The icon's source is `Assets/AppIcon.svg`. `./icon.sh` renders it into `Resources/AppIcon.icns` and `Assets/icon.png`, using Google Chrome. The menu bar icon is drawn in code, in `Sources/BudSwitch/MenuBarIcon.swift`.
 
 ## License
 

@@ -16,7 +16,7 @@ enum BudSwitch {
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
-    private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+    private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private let headphones = Headphones()
     private var hotKey: HotKey?
     private var lockRelease: LockRelease?
@@ -78,11 +78,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     private func updateIcon() {
         let selected = headphones.selected
-        let image = NSImage(
-            systemSymbolName: selected?.symbolName ?? "headphones",
-            accessibilityDescription: selected?.displayName ?? "Headphones")
-        image?.isTemplate = true
-        statusItem.button?.image = image
+        statusItem.button?.image = .menuBarIcon(accessibilityDescription: selected?.displayName ?? "Headphones")
         statusItem.button?.appearsDisabled = !(selected.map(headphones.isOnMac) ?? false)
     }
 

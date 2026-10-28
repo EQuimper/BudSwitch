@@ -104,13 +104,4 @@ extension IOBluetoothDevice {
         guard let owner = name.range(of: "’s ") ?? name.range(of: "'s ") else { return name }
         return String(name[owner.upperBound...])
     }
-
-    var symbolName: String {
-        let name = (self.name ?? "").lowercased()
-        if name.contains("powerbeats") { return "beats.powerbeatspro" }
-        if name.contains("fit pro") { return "beats.fitpro" }
-        if name.contains("airpods pro") { return "airpods.pro" }
-        if name.contains("airpods") { return "airpods" }
-        return "headphones"
-    }
 }
