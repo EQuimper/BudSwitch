@@ -7,7 +7,7 @@
 <p align="center">A menu bar app that moves your AirPods or Beats between your Mac and your iPhone.</p>
 
 <p align="center">
-  <img src="Assets/hand-off.svg" width="100%" alt="Your Mac plays through your earbuds, then pauses and locks, and BudSwitch lets go of them. You press play on your iPhone and it takes them. ⌃⌥⌘B brings them back to the Mac.">
+  <img src="Assets/hand-off.svg" width="100%" alt="You pause your Mac and lock it, and BudSwitch lets go of your earbuds. You press play on your iPhone and it takes them. Back at the Mac, you click BudSwitch's icon in the menu bar, then Mac, and they come back.">
 </p>
 
 ## Why
