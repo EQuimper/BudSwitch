@@ -16,7 +16,7 @@ I was tired of my headphones not going where I wanted. Apple's automatic switchi
 brew install --cask equimper/tap/budswitch
 ```
 
-Or download the zip from [the latest release](https://github.com/EQuimper/BudSwitch/releases/latest), unzip it and move BudSwitch to Applications. It's signed with a Developer ID and notarized by Apple, and runs on macOS 14 or later, on Apple silicon and Intel.
+Or download the zip from [the latest release](https://github.com/EQuimper/BudSwitch/releases/latest), unzip it and move BudSwitch to Applications. It runs on macOS 14 or later, on Apple silicon and Intel.
 
 On first launch, macOS asks for Bluetooth access and for permission to send notifications. The shortcut needs no Accessibility access.
 
