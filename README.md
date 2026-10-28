@@ -14,7 +14,9 @@ brew install --cask equimper/tap/budswitch
 
 Or download the zip from [the latest release](https://github.com/EQuimper/BudSwitch/releases/latest), unzip it and move BudSwitch to Applications. It's signed with a Developer ID and notarized by Apple, and runs on macOS 14 or later, on Apple silicon and Intel.
 
-On first launch, macOS asks for Bluetooth access, the only permission BudSwitch uses: the shortcut needs no Accessibility access, and nothing goes over the network.
+On first launch, macOS asks for Bluetooth access and for permission to send notifications. The shortcut needs no Accessibility access.
+
+BudSwitch checks GitHub for a new version once a day and sends a notification when there is one. Install it with `brew upgrade equimper/tap/budswitch`, or download the new zip. That check is BudSwitch's only network request, and turning off its notifications in System Settings stops it.
 
 ## Use
 
@@ -34,8 +36,9 @@ The menu bar icon dims while the headphones aren't on the Mac. BudSwitch opens a
 - **iPhone** closes that connection with `closeConnection`. The headphones stay paired with both devices, so the iPhone can take them when you press play.
 - The lock rule asks Core Audio whether any app is running audio on the headphones' output (`kAudioDevicePropertyDeviceIsRunningSomewhere`).
 - The shortcut is a Carbon hot key (`RegisterEventHotKey`), and the login item goes through `SMAppService`.
+- The update check compares the app's version with the latest release's tag from GitHub's API (`releases/latest`), and posts its notification with `UNUserNotificationCenter`.
 
-About 370 lines of Swift and AppKit, with no dependencies.
+About 430 lines of Swift and AppKit, with no dependencies.
 
 ## Limitations
 

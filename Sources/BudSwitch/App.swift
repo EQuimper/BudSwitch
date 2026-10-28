@@ -20,6 +20,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let headphones = Headphones()
     private var hotKey: HotKey?
     private var lockRelease: LockRelease?
+    private var updateCheck: UpdateCheck?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let menu = NSMenu()
@@ -33,6 +34,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             self?.toggle()
         }
         lockRelease = LockRelease(headphones: headphones)
+        updateCheck = UpdateCheck()
         registerLoginItemOnFirstLaunch()
         updateIcon()
     }
