@@ -18,12 +18,23 @@ final class LockRelease {
                 MainActor.assumeIsolated { self?.screenLocked() }
             },
             distributed.addObserver(forName: .init("com.apple.screenIsUnlocked"), object: nil, queue: .main) { [weak self] _ in
-                MainActor.assumeIsolated { self?.stopRetrying() }
+                MainActor.assumeIsolated {
+                    self?.stopRetrying()
+                    self?.refreshHeadphones()
+                }
+            },
+            NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.refreshHeadphones() }
             },
             NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.willSleepNotification, object: nil, queue: .main) { [weak self] _ in
                 MainActor.assumeIsolated { self?.willSleep() }
             },
         ]
+    }
+
+    private func refreshHeadphones() {
+        headphones.reload()
+        headphones.audioRouteChanged()
     }
 
     private func screenLocked() {
@@ -43,6 +54,7 @@ final class LockRelease {
 
     private func willSleep() {
         stopRetrying()
+        headphones.cancelPending()
         if let device = headphones.selected, device.isConnected() {
             headphones.release(device)
         }
@@ -55,22 +67,11 @@ final class LockRelease {
 
     /// Whether any app has audio running on the headphones' output, which CoreAudio names "<ADDRESS>:output".
     private func isPlaying(_ device: IOBluetoothDevice) -> Bool {
-        var uid = "\(device.addressString.uppercased()):output" as CFString
-        var deviceID = AudioObjectID(kAudioObjectUnknown)
-        var size = UInt32(MemoryLayout<AudioObjectID>.size)
-        var address = AudioObjectPropertyAddress(
-            mSelector: kAudioHardwarePropertyTranslateUIDToDevice,
-            mScope: kAudioObjectPropertyScopeGlobal,
-            mElement: kAudioObjectPropertyElementMain)
-        let status = withUnsafeMutablePointer(to: &uid) { uid in
-            AudioObjectGetPropertyData(
-                AudioObjectID(kAudioObjectSystemObject), &address, UInt32(MemoryLayout<CFString>.size), uid, &size, &deviceID)
-        }
-        guard status == noErr, deviceID != kAudioObjectUnknown else { return false }
-
+        guard let deviceID = MacAudioOutput.deviceID(for: device.addressString) else { return false }
         var running: UInt32 = 0
-        size = UInt32(MemoryLayout<UInt32>.size)
-        address.mSelector = kAudioDevicePropertyDeviceIsRunningSomewhere
+        var size = UInt32(MemoryLayout.size(ofValue: running))
+        var address = AudioObjectPropertyAddress(mSelector: kAudioDevicePropertyDeviceIsRunningSomewhere,
+                                                 mScope: kAudioObjectPropertyScopeGlobal, mElement: kAudioObjectPropertyElementMain)
         AudioObjectGetPropertyData(deviceID, &address, 0, nil, &size, &running)
         return running != 0
     }

@@ -3,8 +3,16 @@ import AppKit
 extension NSImage {
     /// The app icon redrawn for the menu bar: the earbud lies in the switch's track, its head the knob, its ear tip
     /// half-tone behind it. As a template, it follows the menu bar's appearance and dims with the button.
-    static func menuBarIcon(accessibilityDescription: String) -> NSImage {
+    static func menuBarIcon(onMac: Bool, accessibilityDescription: String) -> NSImage {
         let image = NSImage(size: NSSize(width: 28, height: 15), flipped: true) { _ in
+            NSGraphicsContext.saveGraphicsState()
+            defer { NSGraphicsContext.restoreGraphicsState() }
+            if !onMac {
+                let flip = NSAffineTransform()
+                flip.translateX(by: 28, yBy: 0)
+                flip.scaleX(by: -1, yBy: 1)
+                flip.concat()
+            }
             let track = NSBezierPath(roundedRect: NSRect(x: 1, y: 3, width: 22, height: 9), xRadius: 4.5, yRadius: 4.5)
             track.lineWidth = 1
             track.stroke()

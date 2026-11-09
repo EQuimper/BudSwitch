@@ -18,6 +18,8 @@ enum BudSwitch {
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     private let headphones = Headphones()
+    private let offMacItem = NSMenuItem.sectionHeader(title: "Off Mac")
+    private var macItem: NSMenuItem?
     private var hotKey: HotKey?
     private var lockRelease: LockRelease?
     private var updateCheck: UpdateCheck?
@@ -42,16 +44,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func menuNeedsUpdate(_ menu: NSMenu) {
         headphones.reload()
         let selected = headphones.selected
-        let onMac = selected.map(headphones.isOnMac) ?? false
-
         menu.removeAllItems()
-        menu.addItem(item("Mac", checked: onMac, enabled: selected != nil, action: #selector(useMac)))
-        menu.addItem(item("iPhone", checked: selected != nil && !onMac, enabled: selected != nil, action: #selector(useIPhone)))
+        menu.addItem(offMacItem)
+        let mac = item("Mac", checked: false, enabled: selected != nil, action: #selector(useMac))
+        macItem = mac
+        menu.addItem(mac)
+        menu.addItem(item("iPhone", checked: false, enabled: selected != nil, action: #selector(useIPhone)))
         menu.addItem(.separator())
         menu.addItem(picker(selected: selected))
         menu.addItem(.separator())
         menu.addItem(item("Launch at Login", checked: SMAppService.mainApp.status == .enabled, action: #selector(toggleLaunchAtLogin)))
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        updateIcon()
     }
 
     private func picker(selected: IOBluetoothDevice?) -> NSMenuItem {
@@ -80,17 +84,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     private func updateIcon() {
         let selected = headphones.selected
-        statusItem.button?.image = .menuBarIcon(accessibilityDescription: selected?.displayName ?? "Headphones")
-        statusItem.button?.appearsDisabled = !(selected.map(headphones.isOnMac) ?? false)
+        let onMac = selected.map(headphones.isOnMac) ?? false
+        macItem?.state = onMac ? .on : .off
+        offMacItem.isHidden = onMac
+        let description = selected.map { "\($0.displayName), \(onMac ? "Mac output" : "off Mac")" } ?? "No Headphones"
+        guard let button = statusItem.button else { return }
+        button.image = .menuBarIcon(onMac: onMac, accessibilityDescription: description)
+        button.title = onMac ? "" : offMacItem.title
+        button.imagePosition = onMac ? .imageOnly : .imageLeading
+        button.appearsDisabled = !onMac
     }
 
     private func toggle() {
         guard let device = headphones.selected else { return NSSound.beep() }
-        if headphones.isOnMac(device) {
-            headphones.release(device)
-        } else {
-            headphones.connect(device)
-        }
+        headphones.toggle(device)
     }
 
     @objc private func useMac() {

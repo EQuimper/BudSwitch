@@ -7,10 +7,16 @@ final class Headphones: NSObject {
     var onChange: () -> Void = {}
     private(set) var all: [IOBluetoothDevice] = []
 
-    /// Connections requested but not confirmed yet. They count as on the Mac so the menu reacts right away.
-    private var pending: Set<String> = []
+    private let output: any OutputRouting
+    private var outputObservation: AudioOutputObservation?
+    /// Only an explicit Mac request may select an output when it becomes available.
+    private var pending: (address: String, timeout: Task<Void, Never>)?
     private var connectNotification: IOBluetoothUserNotification?
     private var disconnectNotifications: [String: IOBluetoothUserNotification] = [:]
+
+    init(output: any OutputRouting = MacAudioOutput()) {
+        self.output = output
+    }
 
     var selected: IOBluetoothDevice? {
         let address = UserDefaults.standard.string(forKey: "selectedAddress")
@@ -18,17 +24,16 @@ final class Headphones: NSObject {
     }
 
     func start() {
-        reload()
+        outputObservation = AudioOutputObservation { [weak self] in self?.audioRouteChanged() }
         connectNotification = IOBluetoothDevice.register(forConnectNotifications: self, selector: #selector(deviceConnected(_:device:)))
-        for device in all where device.isConnected() {
-            watchDisconnect(device)
-        }
+        reload()
     }
 
     /// Re-reads the paired list so newly paired headphones show up.
     func reload() {
         let paired = IOBluetoothDevice.pairedDevices() as? [IOBluetoothDevice] ?? []
         all = paired.filter(\.isHeadphones).sorted { $0.displayName < $1.displayName }
+        for device in all where device.isConnected() { watchDisconnect(device) }
     }
 
     func select(_ device: IOBluetoothDevice) {
@@ -37,28 +42,67 @@ final class Headphones: NSObject {
     }
 
     func isOnMac(_ device: IOBluetoothDevice) -> Bool {
-        device.isConnected() || pending.contains(device.addressString)
+        output.route(for: device.addressString) == .selected
     }
 
     func connect(_ device: IOBluetoothDevice) {
-        guard !isOnMac(device) else { return }
-        guard device.openConnection(self) == kIOReturnSuccess else { return NSSound.beep() }
         let address: String = device.addressString
-        pending.insert(address)
-        onChange()
-        // A connection that reports success but never shows up shouldn't stay "on the Mac" forever.
-        Task { [weak self] in
-            try? await Task.sleep(for: .seconds(15))
-            if self?.pending.remove(address) != nil {
-                self?.onChange()
+        guard pending?.address != address else { return }
+        cancelPending()
+        switch output.route(for: address) {
+        case .selected:
+            return
+        case .available(let id):
+            if !output.select(id) { NSSound.beep() }
+            onChange()
+        case .unavailable:
+            // A lingering baseband link cannot be opened again. Reconnect to request an audio endpoint.
+            if device.isConnected(), device.closeConnection() != kIOReturnSuccess { return NSSound.beep() }
+            let timeout = Task { [weak self] in
+                try? await Task.sleep(for: .seconds(15))
+                guard !Task.isCancelled else { return }
+                self?.pending = nil
+                NSSound.beep()
+            }
+            pending = (address, timeout)
+            if device.openConnection(self) != kIOReturnSuccess {
+                cancelPending()
+                NSSound.beep()
             }
         }
     }
 
     func release(_ device: IOBluetoothDevice) {
-        pending.remove(device.addressString)
+        cancelPending()
         device.closeConnection()
         onChange()
+    }
+
+    func toggle(_ device: IOBluetoothDevice) {
+        if pending?.address == device.addressString || isOnMac(device) {
+            release(device)
+        } else {
+            connect(device)
+        }
+    }
+
+    func audioRouteChanged() {
+        defer { onChange() }
+        guard let address = pending?.address else { return }
+        switch output.route(for: address) {
+        case .unavailable:
+            return
+        case .selected:
+            cancelPending()
+        case .available(let id):
+            cancelPending()
+            if !output.select(id) { NSSound.beep() }
+        }
+    }
+
+    func cancelPending() {
+        pending?.timeout.cancel()
+        pending = nil
     }
 
     private func watchDisconnect(_ device: IOBluetoothDevice) {
@@ -69,10 +113,12 @@ final class Headphones: NSObject {
 
     /// Called by IOBluetooth when an `openConnection(_:)` request finishes.
     @objc private func connectionComplete(_ device: IOBluetoothDevice, status: IOReturn) {
-        guard status != kIOReturnSuccess else { return }
-        pending.remove(device.addressString)
-        NSSound.beep()
-        onChange()
+        guard pending?.address == device.addressString else { return }
+        if status != kIOReturnSuccess {
+            cancelPending()
+            NSSound.beep()
+        }
+        audioRouteChanged()
     }
 
     @objc private func deviceConnected(_ notification: IOBluetoothUserNotification, device: IOBluetoothDevice) {
@@ -80,10 +126,10 @@ final class Headphones: NSObject {
         if !all.contains(where: { $0.addressString == device.addressString }) {
             reload()
         }
-        pending.remove(device.addressString)
         watchDisconnect(device)
         // Whichever pair lands on the Mac becomes the one the menu, shortcut and lock rule control.
         select(device)
+        audioRouteChanged()
     }
 
     @objc private func deviceDisconnected(_ notification: IOBluetoothUserNotification, device: IOBluetoothDevice) {

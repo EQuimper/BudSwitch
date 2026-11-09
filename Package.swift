@@ -5,6 +5,7 @@ let package = Package(
     name: "BudSwitch",
     platforms: [.macOS(.v14)],
     targets: [
-        .executableTarget(name: "BudSwitch")
+        .executableTarget(name: "BudSwitch"),
+        .testTarget(name: "BudSwitchTests", dependencies: ["BudSwitch"])
     ]
 )

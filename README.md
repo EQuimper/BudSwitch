@@ -50,7 +50,9 @@ Your headphones need to be paired with both your Mac and your iPhone.
 
 The submenu under your headphones' name picks which ones the menu, the shortcut and the lock rule control. It follows whichever headphones last connected to the Mac.
 
-The menu bar icon dims while your headphones aren't on the Mac. BudSwitch opens at login; **Launch at Login** in its menu turns that off.
+The **Mac** checkmark means the selected headphones are the Mac’s current sound output. When the Mac uses its speakers or another output, the checkmark clears and **Off Mac** appears beside the dimmed menu bar icon and above the two menu choices. **iPhone** releases the headphones. BudSwitch can’t see whether the iPhone has picked them up or whether you’re wearing them.
+
+BudSwitch opens at login; **Launch at Login** in its menu turns that off.
 
 ## Limitations
 
